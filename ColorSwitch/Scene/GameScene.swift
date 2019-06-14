@@ -46,7 +46,7 @@ class GameScene: SKScene {
         colorSwitch.size = CGSize(width: frame.size.width / 3, height: frame.size.width / 3)
        // print(colorSwitch.size)
         colorSwitch.position = CGPoint(x: frame.midX, y: frame.minY + colorSwitch.size.height)
-       
+        colorSwitch.zPosition = ZPosition.colorSwitch
         colorSwitch.physicsBody = SKPhysicsBody(circleOfRadius: colorSwitch.size.width / 2)
         colorSwitch.physicsBody?.categoryBitMask = PhysicsCategories.switchCategory
         colorSwitch.physicsBody?.isDynamic = false
@@ -55,6 +55,7 @@ class GameScene: SKScene {
         
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.fontSize = 60.0
+        scoreLabel.zPosition = ZPosition.label
         scoreLabel.fontColor = UIColor.white
         scoreLabel.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(scoreLabel)
@@ -73,6 +74,7 @@ class GameScene: SKScene {
         ball.colorBlendFactor = 1.0
         ball.name = "Ball"
         ball.position = CGPoint(x: frame.midX, y: frame.maxY)
+        ball.zPosition = ZPosition.ball
         ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
         ball.physicsBody?.categoryBitMask = PhysicsCategories.ballCategory
         ball.physicsBody?.contactTestBitMask = PhysicsCategories.switchCategory
@@ -90,7 +92,16 @@ class GameScene: SKScene {
         colorSwitch.run(SKAction.rotate(byAngle: .pi/2, duration: 0.25))
     }
     func gameOver(){
-        print("game over")
+        
+        UserDefaults.standard.set(score, forKey: "RecentScore")
+        
+        if score > UserDefaults.standard.integer(forKey: "Highscore"){
+            UserDefaults.standard.set(score, forKey: "Highscore")
+        }
+        
+        
+        let menu = MenuScene(size: view!.bounds.size)
+        view!.presentScene(menu)
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         trunWheel()
@@ -106,6 +117,7 @@ extension GameScene : SKPhysicsContactDelegate {
             if let ball = contact.bodyA.node?.name == "Ball" ? contact.bodyA.node as? SKSpriteNode : contact.bodyB.node as? SKSpriteNode {
                 if currentColorIndex == switchState.rawValue {
                     print("correct!\(score)")
+                   // run(SKAction.playSoundFileNamed("bling", waitForCompletion: false))
                     score += 1
                     updateLabel()
                     ball.run(SKAction.fadeOut(withDuration: 0.25)) {
